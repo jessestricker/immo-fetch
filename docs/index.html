@@ -6,6 +6,44 @@
     <title>Document</title>
   </head>
   <body>
-    <h1>Hello</h1>
+    <label for="textShareText">Share Text: </label>
+    <input type="text" name="textShareText" id="textShareText" />
+    <button type="button" id="buttonGo">Go</button>
+
+    <script>
+      const SITES = new Map([
+        [/immowelt\.de\/expose\/(\w+)/, getUrlImmowelt],
+        [/immobilienscout24\.de\/expose\/(\d+)/, getUrlImmoscout24],
+      ]);
+
+      async function getUrlImmoscout24(id) {
+        return `https://www.immobilienscout24.de/expose/${id}/print`;
+      }
+
+      async function getUrlImmowelt(id) {
+        const url = `https://data.immowelt.de/expose-api/v1/online-id/${id}/print/${id}.pdf`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        return data.path;
+      }
+
+      async function onButtonClick() {
+        const shareText = textShareText.value;
+        for (const [regex, getUrl] of SITES) {
+          const matches = shareText.match(regex);
+          if (matches) {
+            const exposeId = matches[1];
+            const url = await getUrl(exposeId);
+            window.location.href = url;
+            break;
+          }
+        }
+      }
+
+      const buttonGo = document.getElementById("buttonGo");
+      const textShareText = document.getElementById("textShareText");
+
+      buttonGo.addEventListener("click", onButtonClick);
+    </script>
   </body>
 </html>
